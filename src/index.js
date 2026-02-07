@@ -6,24 +6,29 @@ function App() {
   const [title, setTitle] = useState("");
 
   useEffect(() => {
-    fetch("http://13.233.85.25:5000/tasks")
+    fetch("/tasks")
       .then(res => res.json())
       .then(data => setTasks(data));
   }, []);
 
   const addTask = () => {
-    fetch("http://13.233.85.25:5000/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title })
-    })
+  fetch("/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title })
+  })
+    .then(() => fetch("/tasks"))
     .then(res => res.json())
-    .then(newTask => setTasks([...tasks, newTask]));
-    setTitle("");
-  };
+    .then(data => {
+      setTasks(data);
+      setTitle("");
+    })
+    .catch(err => console.error(err));
+};
+
 
   const toggleTask = (id) => {
-    fetch(`http://13.233.85.25:5000/tasks/${id}`, { method: "PUT" })
+    fetch(`/tasks/${id}`, { method: "PUT" })
       .then(() => {
         setTasks(tasks.map(task =>
           task.id === id ? { ...task, completed: !task.completed } : task
@@ -32,7 +37,7 @@ function App() {
   };
 
   const deleteTask = (id) => {
-    fetch(`http://13.233.85.25:5000/tasks/${id}`, { method: "DELETE" })
+    fetch(`/tasks/${id}`, { method: "DELETE" })
       .then(() => setTasks(tasks.filter(task => task.id !== id)));
   };
 
@@ -67,4 +72,9 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
+useEffect(() => {
+  fetch("/tasks/api/health")
+    .then(res => res.json())
+    .then(data => console.log("Health:", data));
+}, []);
 
